@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:app_tracker/database_creator.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'config_parser.dart';
@@ -31,11 +30,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  ConfigParser parser = new ConfigParser();
-
   @override
   Widget build(BuildContext context) {
-    if (parser.checkIfConfigFileExists()) {
+    if (ConfigParser.checkIfConfigFileExists()) {
+      DatabaseCreator.generateDatabaseIfNotExitst(ConfigParser.getDBLocation());
       return mainScreen();
     } else {
       return setConfigScreen();
@@ -63,21 +61,17 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text("First Time Setup"),
         ),
         body: Center(
-          child: setDatabaseButton(),
+          child: setDatabaseDirectoryButton(),
         ),
       );
 
-  Widget setDatabaseButton() => ElevatedButton(
+  Widget setDatabaseDirectoryButton() => ElevatedButton(
       onPressed: () async {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: ['db'],
-            allowMultiple: false);
+        String? result = await FilePicker.platform.getDirectoryPath();
         if (result != null) {
-          parser.createConfigFile(
-              result.paths.map((path) => File(path.toString())).toList()[0]);
+          ConfigParser.createConfigFile(result);
         }
         setState(() {});
       },
-      child: const Text("Select the database file!"));
+      child: const Text("Select the database storage location!"));
 }

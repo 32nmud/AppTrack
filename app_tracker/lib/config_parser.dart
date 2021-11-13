@@ -1,12 +1,12 @@
 import 'dart:io';
 
 class ConfigParser {
-  File configFile =
+  static File configFile =
       File(Platform.environment["HOME"]! + "/.appTrack/config.conf");
 
-  bool checkIfConfigFileExists() => configFile.existsSync();
+  static bool checkIfConfigFileExists() => configFile.existsSync();
 
-  void createConfigFile(File databaseLocation) {
+  static void createConfigFile(String databaseLocation) {
     if (!checkIfConfigFileExists()) {
       configFile.createSync(recursive: true);
       fillEmptyFile();
@@ -16,7 +16,7 @@ class ConfigParser {
     }
   }
 
-  void fillEmptyFile() {
+  static void fillEmptyFile() {
     String contents = """
 # This is the configuration file for the AppTrack job applicaiton tracking
 # program.
@@ -29,7 +29,7 @@ database_location=NULL
     configFile.writeAsStringSync(contents);
   }
 
-  void updateDatabaseLocation(File databasseLocation) {
+  static void updateDatabaseLocation(String databasseLocation) {
     List<String> contents = configFile.readAsLinesSync();
 
     String updated = """""";
@@ -38,10 +38,21 @@ database_location=NULL
       if (line.isEmpty || line.substring(0, 1) == "#") {
         updated.isEmpty ? updated = line : updated = updated + "\n" + line;
       } else if (line.split("=")[0] == "database_location") {
-        updated =
-            updated + "\n" + line.split("=")[0] + "=" + databasseLocation.path;
+        updated = updated + "\n" + line.split("=")[0] + "=" + databasseLocation;
       }
     });
     configFile.writeAsStringSync(updated);
+  }
+
+  static String getDBLocation() {
+    List<String> contents = configFile.readAsLinesSync();
+
+    for (String line in contents) {
+      if (line.split("=")[0] == "database_location") {
+        return line.split("=")[1];
+      }
+    }
+    //TODO: Implement and throw an error here.
+    return "Location not found!";
   }
 }
